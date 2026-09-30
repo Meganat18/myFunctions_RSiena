@@ -566,3 +566,104 @@ jaccard_index <- function(network_w2, network_w4) {
   res <- tab_change[4] / (tab_change[2] + tab_change[3] + tab_change[4])
   return(res)
 }
+
+# 4. Functions for selection plot ---------------------------------------------
+
+selection_plot <- function(
+    x,
+    xd,
+    name,
+    vname,
+    levls = 0:4,
+    levls.alt = seq(0, 4, length.out = 201),
+    base_size = 16,
+    title = "",
+    subtitle = NULL,
+    xlab = "Valeur de la variable chez l'alter",
+    ylab = "Fonction de sélection",
+    legend_title = "Valeur de l'ego",
+    save = FALSE,
+    filename = NULL,
+    width = 10,
+    height = 7,
+    dpi = 300
+) {
+  
+  # Vérification de ggplot2
+  requireNamespace("ggplot2")
+  
+  # Création du selection plot de Snijders
+  p <- selectionTable.plot(
+    x = x,
+    xd = xd,
+    name = name,
+    vname = vname,
+    levls = levls,
+    levls.alt = levls.alt,
+    withMax = TRUE,
+    base_size = base_size
+  )
+  
+  # Suppression des points intermédiaires de la grille
+  # (on conserve les astérisques des maxima)
+  p$layers <- p$layers[-1]
+  
+  # Mise en forme
+  p <- p +
+    ggplot2::scale_x_continuous(
+      breaks = levls,
+      labels = levls,
+      limits = range(levls.alt)
+    ) +
+    ggplot2::labs(
+      title = title,
+      subtitle = subtitle,
+      x = xlab,
+      y = ylab,
+      colour = legend_title
+    ) +
+    ggplot2::theme_light(base_size = base_size) +
+    ggplot2::theme(
+      plot.title = ggplot2::element_text(
+        hjust = 0.5,
+        face = "bold",
+        size = base_size + 2
+      ),
+      plot.subtitle = ggplot2::element_text(
+        hjust = 0.5,
+        size = base_size - 3
+      ),
+      axis.title = ggplot2::element_text(
+        size = base_size - 1
+      ),
+      axis.text = ggplot2::element_text(
+        size = base_size - 3
+      ),
+      legend.title = ggplot2::element_text(
+        face = "bold"
+      ),
+      legend.text = ggplot2::element_text(
+        size = base_size - 4
+      ),
+      legend.position = "right"
+    )
+  
+  # Sauvegarde optionnelle
+  if (save) {
+    
+    if (is.null(filename)) {
+      stop("Tu dois fournir un nom de fichier avec 'filename' si save = TRUE.")
+    }
+    
+    ggplot2::ggsave(
+      filename = filename,
+      plot = p,
+      width = width,
+      height = height,
+      units = "in",
+      dpi = dpi
+    )
+  }
+  
+  return(p)
+}
